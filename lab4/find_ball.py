@@ -47,41 +47,8 @@ def find_ball(opencv_image, debug=False):
 	print("height: %d, width: %d" % (rows, cols))
 
 	ball = circles[0]
-	# pixel_sum = 0
-	# in_pixel_count = 0
-	# circle_coords = np.array((ball[0], ball[1]))
-	# radius = ball[2]
-	# # Do not iterate over each pixel. But only around circle.
-	# # Or even just sample
-	# x_min = (circle_coords[0] - radius).astype(int) if circle_coords[0] - radius >=0 else 0
-	# x_max = (circle_coords[0] + radius).astype(int) if circle_coords[0] + radius < cols else cols
-	# y_min = (circle_coords[1] - radius).astype(int) if circle_coords[1] - radius >= 0 else 0
-	# y_max = (circle_coords[1] + radius).astype(int) if circle_coords[1] + radius < rows else rows
-	# for i in range(y_min, y_max):
-	# 	for j in range(x_min, x_max):
-	# 		x = j
-	# 		y = i
-	# 		dist = np.linalg.norm(np.array((x, y)) - circle_coords)  #math.sqrt((x - circle[0])^2.0 + (y - circle[1])^2)
-	# 		#print("Dist: %d, x: %d, y: %d, circle_x: %d, circle_y: %d, circle_r: %d" % (dist, x, y, circle[0], circle[1], circle[2]))
-	# 		if dist < ball[2]:
-	# 			#print("In circle")
-	# 			pixel_sum+=opencv_image[i][j]
-	# 			in_pixel_count+=1
-    #
-	# if in_pixel_count == 0:
-	# 	print("circle_x: %d, circle_y: %d circle_r: %d" % (ball[0], ball[1], ball[2]))
-    #
-	# circle_brightness = pixel_sum/in_pixel_count
-	# print("brightness: %d circle_x: %d, circle_y: %d circle_r: %d" % (circle_brightness, ball[0], ball[1], ball[2]))
-    #
-	# if circle_brightness > circle_area_threshold:
-	# 	ball = None
 
-	#print(circles)
-	#print(len(circles))
 	#display_circles(opencv_image, circles, ball)
-
-	#print("Ball: " + ball)
 
 	return ball
 
