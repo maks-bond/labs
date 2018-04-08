@@ -3,6 +3,7 @@
 import cv2
 import sys
 import copy
+import math
 
 import numpy as np
 
@@ -11,6 +12,7 @@ try:
 except ImportError:
 	sys.exit('install Pillow to run this code')
 
+circle_area_threshold = 50
 
 def find_ball(opencv_image, debug=False):
 	"""Find the ball in an image.
@@ -19,14 +21,68 @@ def find_ball(opencv_image, debug=False):
 		opencv_image -- the image
 		debug -- an optional argument which can be used to control whether
 				debugging information is displayed.
-		
+
 		Returns [x, y, radius] of the ball, and [0,0,0] or None if no ball is found.
 	"""
 
 	ball = None
-	
-	## TODO: INSERT YOUR SOLUTION HERE
-	
+
+	#opencv_image = cv2.GaussianBlur(opencv_image,(7,7),0)
+	opencv_image = cv2.medianBlur(opencv_image, 11)
+	circles = cv2.HoughCircles(opencv_image, cv2.HOUGH_GRADIENT, 1, 20,
+							   param1=90, param2=30, minRadius=0, maxRadius=0)
+
+	print(circles)
+	if circles is None or len(circles) == 0:
+		return None
+
+	circles = circles[0]
+
+	# Iterate over circles and select the one that is black
+	if circles is None or len(circles) == 0:
+		return None
+
+	rows, cols = opencv_image.shape
+
+	print("height: %d, width: %d" % (rows, cols))
+
+	ball = circles[0]
+	# pixel_sum = 0
+	# in_pixel_count = 0
+	# circle_coords = np.array((ball[0], ball[1]))
+	# radius = ball[2]
+	# # Do not iterate over each pixel. But only around circle.
+	# # Or even just sample
+	# x_min = (circle_coords[0] - radius).astype(int) if circle_coords[0] - radius >=0 else 0
+	# x_max = (circle_coords[0] + radius).astype(int) if circle_coords[0] + radius < cols else cols
+	# y_min = (circle_coords[1] - radius).astype(int) if circle_coords[1] - radius >= 0 else 0
+	# y_max = (circle_coords[1] + radius).astype(int) if circle_coords[1] + radius < rows else rows
+	# for i in range(y_min, y_max):
+	# 	for j in range(x_min, x_max):
+	# 		x = j
+	# 		y = i
+	# 		dist = np.linalg.norm(np.array((x, y)) - circle_coords)  #math.sqrt((x - circle[0])^2.0 + (y - circle[1])^2)
+	# 		#print("Dist: %d, x: %d, y: %d, circle_x: %d, circle_y: %d, circle_r: %d" % (dist, x, y, circle[0], circle[1], circle[2]))
+	# 		if dist < ball[2]:
+	# 			#print("In circle")
+	# 			pixel_sum+=opencv_image[i][j]
+	# 			in_pixel_count+=1
+    #
+	# if in_pixel_count == 0:
+	# 	print("circle_x: %d, circle_y: %d circle_r: %d" % (ball[0], ball[1], ball[2]))
+    #
+	# circle_brightness = pixel_sum/in_pixel_count
+	# print("brightness: %d circle_x: %d, circle_y: %d circle_r: %d" % (circle_brightness, ball[0], ball[1], ball[2]))
+    #
+	# if circle_brightness > circle_area_threshold:
+	# 	ball = None
+
+	#print(circles)
+	#print(len(circles))
+	#display_circles(opencv_image, circles, ball)
+
+	#print("Ball: " + ball)
+
 	return ball
 
 
