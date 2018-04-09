@@ -29,22 +29,22 @@ def find_ball(opencv_image, debug=False):
 
 	#opencv_image = cv2.GaussianBlur(opencv_image,(7,7),0)
 	opencv_image = cv2.medianBlur(opencv_image, 11)
-	circles = cv2.HoughCircles(opencv_image, cv2.HOUGH_GRADIENT, 1, 20,
-							   param1=90, param2=30, minRadius=0, maxRadius=0)
+	#circles = cv2.HoughCircles(opencv_image, cv2.HOUGH_GRADIENT, 1, 20, param1=90, param2=30, minRadius=0, maxRadius=0)
+	circles = cv2.HoughCircles(opencv_image, cv2.HOUGH_GRADIENT, 1, 20, param1=90, param2=30, minRadius=0, maxRadius=0)
 
-	print(circles)
+	#print(circles)
 	if circles is None or len(circles) == 0:
 		return None
 
 	circles = circles[0]
-
+	#print(circles)
 	# Iterate over circles and select the one that is black
 	if circles is None or len(circles) == 0:
 		return None
 
 	rows, cols = opencv_image.shape
 
-	print("height: %d, width: %d" % (rows, cols))
+	#print("height: %d, width: %d" % (rows, cols))
 
 	ball = circles[0]
 
