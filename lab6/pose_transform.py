@@ -29,7 +29,7 @@ def get_relative_pose(object_pose, reference_frame_pose):
 	ref_angle = reference_frame_pose.rotation.angle_z.radians
 
 
-	# 1. transpose to convert the object coordinates to reference coordinates without rotation
+	# 1. translate to convert the object coordinates to reference coordinates without rotation
 	obj_x_t = obj_x - ref_x
 	obj_y_t = obj_y - ref_y
 
