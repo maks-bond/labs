@@ -154,6 +154,8 @@ def my_go_to_pose1(robot, x, y, angle_z):
 	time.sleep(0.2)
 	my_turn_in_place(robot, angle, 40)
 
+#def get_duration_from_angle_and_speed(robot, angle, speed)
+
 def my_go_to_pose2(robot, x, y, angle_z):
 	"""Moves the robot to a pose relative to its current pose.
 		Arguments:
@@ -166,6 +168,38 @@ def my_go_to_pose2(robot, x, y, angle_z):
 	# using the robot.drive_wheels() function to jointly move and rotate the 
 	# robot to reduce distance between current and desired pose (Approach 2).
 	# ####
+
+	b = 50
+	duration = 7
+	l1 = math.pi*(y-b/2) / 2
+	l2 = math.pi*(y+b/2) / 2
+
+	s1 = l1 / duration
+	s2 = l2 / duration + 10
+
+	print(s1)
+	print(s2)
+	#print(robot.pose)
+	#robot.drive_wheels(s1, s2, duration = duration)
+	#print(robot.pose)
+
+
+	robot.drive_wheels(s1, s2, duration=1)
+	print(robot.pose)
+	robot.drive_wheels(s1, s2+20, duration=1)
+	print(robot.pose)
+	robot.drive_wheels(s1+20, s2, duration=1)
+	print(robot.pose)
+	robot.drive_wheels(s1, s2+20, duration=1)
+	print(robot.pose)
+	robot.drive_wheels(s1+20, s2, duration=1)
+	print(robot.pose)
+	robot.drive_wheels(s1, s2+20, duration=1)
+	print(robot.pose)
+	robot.drive_wheels(s1+20, s2, duration=1)
+	print(robot.pose)
+	#robot.drive_wheels(20, 40, duration= 5)
+
 	pass
 
 def my_go_to_pose3(robot, x, y, angle_z):
@@ -193,7 +227,7 @@ def run(robot: cozmo.robot.Robot):
 	# get_distance_between_wheels_exp(robot)
 	# cozmo_drive_straight(robot, 62, 50)
 	# cozmo_turn_in_place(robot, 180, 30)
-	#cozmo_go_to_pose(robot, -100, 100, 90)
+	#cozmo_go_to_pose(robot, 100, 100, 90)
 
 	#robot.drive_wheels(20, -20, duration = 13.8)
 	#robot.drive_wheels(30, 30, duration = 3)
@@ -204,8 +238,8 @@ def run(robot: cozmo.robot.Robot):
 	#time.sleep(0.1)
 	#my_turn_in_place(robot, 45, 40)
     #
-	my_go_to_pose1(robot, 100, 100, 180)
-	# my_go_to_pose2(robot, 100, 100, 45)
+	#my_go_to_pose1(robot, 100, 100, 180)
+	my_go_to_pose2(robot, 100, 250, 180)
 	# my_go_to_pose3(robot, 100, 100, 45)
 
 
