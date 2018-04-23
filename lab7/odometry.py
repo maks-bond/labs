@@ -64,7 +64,7 @@ def front_wheel_exp(robot):
 	cozmo_drive_straight(robot, 85, 20)
 
 def get_distance_between_wheels_exp(robot):
-	robot.drive_wheels(30, -30, duration = 20)
+	robot.drive_wheels(50, 0, duration = 6)
 
 def get_distance_between_wheels():
 	"""Returns the distance between the wheels of the Cozmo robot in millimeters."""
@@ -73,7 +73,17 @@ def get_distance_between_wheels():
 	# robot.drive_wheels() function. Write a comment that explains how you determined
 	# it and any computation you do as part of this function.
 	# ####
-	pass
+
+	# The distance between left and right wheels has been calculated in the following way using 'get_distance_between_wheels_exp' function
+	#1) get_distance_between_wheels_exp function rotates one wheel of the robot with the constant speed - 50 mmps
+	#2) Before running the program the robot has been lifted by its head so that only its back wheels are touching the ground
+	#3) The program has been started and the robot has started rotating around its back right wheel as only left wheel has been spinning with 50 mmps
+	#4) By experimenting the duration of 6s has been found that allowed robot to make a full circle spin
+	#5) The Distance that robot's spinning wheel has made is 6*50 = 300mm
+	#6) 300mm is the length of the circle that robot has made. The radius is 300/(2*pi) = 47.75 mm
+	#7) Since the robot has been spinning around its static wheel, the radius of the circle equals to the distance between robot's left and right wheel
+
+	return 47.75
 
 def rotate_front_wheel(robot, angle_deg):
 	"""Rotates the front wheel of the robot by a desired angle.
@@ -170,25 +180,50 @@ def my_go_to_pose2(robot, x, y, angle_z):
 	# robot to reduce distance between current and desired pose (Approach 2).
 	# ####
 
-	b = 50
+
+	# This is the special case calculateion of wheel speeds and duration to reach the point x,y
+	# It is special case because we have an assumption that x approximately equals to y
+	# Robot starts from its default position where it faces its x-axis (z-angle == 0)
+	# Robot moves following an arc of a circle that has a centre in (0,y) coordinate
+	# The distances for each robot's wheel is calculated taking into account the distance between wheels 'b'
+	# Having the distance and fixed duration of movement, the speeds for each wheel are calculated
+	# We support only 'going forward' functionality.
+
+	b = get_distance_between_wheels()
 	duration = 7
-	l1 = math.pi*(y-b/2) / 2
-	l2 = math.pi*(y+b/2) / 2
 
+	# Lengths of arcs for each wheel to reach (x,y)
+	# These are arcs of the circle with the center at (0,y)
+	if y > 0:
+		l1 = math.pi*(y-b/2) / 2
+		l2 = math.pi*(y+b/2) / 2
+	else:
+		y = abs(y)
+		l1 = math.pi * (y + b/2) / 2
+		l2 = math.pi * (y - b/2) / 2
+
+	print("Length left: " + str(l1))
+	print("Length right: " + str(l2))
+
+	# Speeds for each wheel
 	s1 = l1 / duration
-	s2 = l2 / duration + 10
+	s2 = l2 / duration
 
-	print(s1)
-	print(s2)
-	print(robot.pose)
+	if s1 > s2 :
+		s1 += 10 # some constant that takes warm up time into account. It was found experimentally
+	else:
+		s2 += 10
+
+	print("Speed left: " + str(s1))
+	print("Speed right: " + str(s2))
+
 	robot.drive_wheels(s1, s2, duration = duration)
-	print(robot.pose)
 	time.sleep(0.1)
 
+	# After the location is reached, read the pose and turn in place towards needed angle
 	cur_pose = robot.pose
 	cur_angle = cur_pose.rotation.angle_z.degrees
 	angle_to_turn =  angle_z - cur_angle
-	print("Turning by angle: " + str(angle_to_turn))
 	my_turn_in_place(robot, angle_to_turn, 40)
 
 def my_go_to_pose3(robot, x, y, angle_z):
@@ -203,7 +238,7 @@ def my_go_to_pose3(robot, x, y, angle_z):
 	# as fast as possible. You can experiment with the built-in Cozmo function
 	# (cozmo_go_to_pose() above) to understand its strategy and do the same.
 	# ####
-	pass
+
 
 def run(robot: cozmo.robot.Robot):
 
@@ -213,7 +248,7 @@ def run(robot: cozmo.robot.Robot):
 	## Example tests of the functions
 
 	#front_wheel_exp(robot)
-	# get_distance_between_wheels_exp(robot)
+	#get_distance_between_wheels_exp(robot)
 	# cozmo_drive_straight(robot, 62, 50)
 	# cozmo_turn_in_place(robot, 180, 30)
 	#cozmo_go_to_pose(robot, 100, 100, 90)
@@ -228,8 +263,8 @@ def run(robot: cozmo.robot.Robot):
 	#my_turn_in_place(robot, 45, 40)
     #
 	#my_go_to_pose1(robot, 100, 100, 180)
-	#cozmo_go_to_pose(robot, 300, 300, 45)
-	my_go_to_pose2(robot, 300, 300, 45)
+	my_go_to_pose2(robot, 200, -200, 45)
+	#my_go_to_pose2(robot, 300, 300, 45)
 	# my_go_to_pose3(robot, 100, 100, 45)
 
 
