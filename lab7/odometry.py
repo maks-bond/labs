@@ -108,8 +108,9 @@ def my_turn_in_place(robot, angle, speed):
 		speed -- Desired speed of the movement in degrees per second
 	"""
 
-	# Negative angles are not supported
-	# It was emperically calculated
+	is_negative = angle < 0
+	angle = abs(angle)
+	# full_around_distance was emperically calculated
 	full_around_distance = 290
 	rotation_amount = angle / 360
 
@@ -117,7 +118,13 @@ def my_turn_in_place(robot, angle, speed):
 	warm_up_duration = 0.6
 	duration = warm_up_duration + distance / speed
 
-	robot.drive_wheels(-speed, speed, duration = duration)
+	sl = -speed
+	sr = speed
+	if is_negative:
+		sl = -sl
+		sr = -sr
+
+	robot.drive_wheels(sl, sr, duration = duration)
 
 
 def my_go_to_pose1(robot, x, y, angle_z):
@@ -136,21 +143,15 @@ def my_go_to_pose1(robot, x, y, angle_z):
 
 	distance = math.sqrt(x**2 + y**2)
 	angle = math.degrees(math.atan2(y, x))
-	if angle < 0:
-		angle = 360 + angle
 
 	# 1. Turn in place
 	my_turn_in_place(robot, angle, 40)
-	print(angle)
-	print(distance)
 	time.sleep(0.2)
 	# 2. Go
 	my_drive_straight(robot, distance, 40)
 	# 3. Turn again to match angle_z
 	angle = angle_z - angle
-	if angle < 0:
-		angle = 360 + angle
-	print(angle)
+
 	time.sleep(0.2)
 	my_turn_in_place(robot, angle, 40)
 
@@ -179,28 +180,16 @@ def my_go_to_pose2(robot, x, y, angle_z):
 
 	print(s1)
 	print(s2)
-	#print(robot.pose)
-	#robot.drive_wheels(s1, s2, duration = duration)
-	#print(robot.pose)
+	print(robot.pose)
+	robot.drive_wheels(s1, s2, duration = duration)
+	print(robot.pose)
+	time.sleep(0.1)
 
-
-	robot.drive_wheels(s1, s2, duration=1)
-	print(robot.pose)
-	robot.drive_wheels(s1, s2+20, duration=1)
-	print(robot.pose)
-	robot.drive_wheels(s1+20, s2, duration=1)
-	print(robot.pose)
-	robot.drive_wheels(s1, s2+20, duration=1)
-	print(robot.pose)
-	robot.drive_wheels(s1+20, s2, duration=1)
-	print(robot.pose)
-	robot.drive_wheels(s1, s2+20, duration=1)
-	print(robot.pose)
-	robot.drive_wheels(s1+20, s2, duration=1)
-	print(robot.pose)
-	#robot.drive_wheels(20, 40, duration= 5)
-
-	pass
+	cur_pose = robot.pose
+	cur_angle = cur_pose.rotation.angle_z.degrees
+	angle_to_turn =  angle_z - cur_angle
+	print("Turning by angle: " + str(angle_to_turn))
+	my_turn_in_place(robot, angle_to_turn, 40)
 
 def my_go_to_pose3(robot, x, y, angle_z):
 	"""Moves the robot to a pose relative to its current pose.
@@ -239,7 +228,8 @@ def run(robot: cozmo.robot.Robot):
 	#my_turn_in_place(robot, 45, 40)
     #
 	#my_go_to_pose1(robot, 100, 100, 180)
-	my_go_to_pose2(robot, 100, 250, 180)
+	#cozmo_go_to_pose(robot, 300, 300, 45)
+	my_go_to_pose2(robot, 300, 300, 45)
 	# my_go_to_pose3(robot, 100, 100, 45)
 
 
