@@ -36,9 +36,10 @@ def move_relative_to_cube(robot: cozmo.robot.Robot):
 			print("Didn't find a cube")
 
 	print("Cube angle: " + str(cube.pose.rotation.angle_z.degrees))
-	desired_pose_relative_to_cube = Pose(0, 30, 0, angle_z=degrees(-90))
+	desired_pose_relative_to_cube = Pose(0, 30, 0, angle_z=degrees(0))
 
 	desired_global_pose = get_global_pose_from_local(cube.pose, desired_pose_relative_to_cube)
+	print("Robot pose: %s" % robot.pose)
 	print("Cube pose: %s" % cube.pose)
 	print("Desired global pose: %s" % desired_global_pose)
 	relative_pose = get_relative_pose(desired_global_pose, robot.pose)
@@ -48,7 +49,7 @@ def move_relative_to_cube(robot: cozmo.robot.Robot):
 	print(x)
 	print(y)
 	print(angle)
-	odometry.my_go_to_pose1(robot, x, y, angle)
+	odometry.my_go_to_pose3(robot, x, y, angle)
 
 	# ####
 	# TODO: Make the robot move to the given desired_pose_relative_to_cube.
