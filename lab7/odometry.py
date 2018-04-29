@@ -169,7 +169,64 @@ def my_go_to_pose1(robot, x, y, angle_z):
 	time.sleep(0.2)
 	my_turn_in_place(robot, angle, 40)
 
-#def get_duration_from_angle_and_speed(robot, angle, speed)
+# Helper function that implements main functionality for Approach #2 and #3
+def my_go_to_pose2_global(robot, target_pose_x, target_pose_y, angle_z):
+	b = get_distance_between_wheels()
+	r = get_front_wheel_radius()
+	epsilon = 10
+	distance = 100
+
+	# Iterate before being very close near target
+	while distance > epsilon:
+
+		robot_pose = robot.pose
+		robot_pose_x = robot_pose.position.x
+		robot_pose_y = robot_pose.position.y
+		robot_angle = robot_pose.rotation.angle_z.radians
+
+		# Get distance
+		distance = math.sqrt((target_pose_x - robot_pose_x) ** 2 + (target_pose_y - robot_pose_y) ** 2)
+		# Get angle to target
+		direction_deviation_angle = math.atan((robot_pose_y - target_pose_y) / (robot_pose_x - target_pose_x))
+		if robot_pose_x > target_pose_x:
+			if robot_pose_y > target_pose_y:
+				direction_deviation_angle -= math.pi
+			else:
+				direction_deviation_angle += math.pi
+		# take into account robot's angle
+		angle_to_target = robot_angle - direction_deviation_angle
+
+		# Slow down near target to not overshoot
+		direct_velocity = 40
+		if distance < 50:
+			direct_velocity = 20
+
+		print("Target X: " + str(target_pose_x))
+		print("Target Y: " + str(target_pose_y))
+		print("Robot X: " + str(robot_pose_x))
+		print("Robot Y: " + str(robot_pose_y))
+		print("Distance: " + str(distance))
+		print("Robot angle: " + str(robot_angle))
+		print("Direction deviation angle: " + str(direction_deviation_angle))
+		print("Angle to target: " + str(angle_to_target))
+
+		# Calculate velocity of each wheel
+		sl = direct_velocity - angle_to_target * b
+		sr = direct_velocity + angle_to_target * b
+		print("Velocity:")
+		print(sl)
+		print(sr)
+		print("==============")
+		# Go
+		robot.drive_wheels(sr, sl)
+
+	# After the location is reached, read the pose and turn in place towards needed angle
+	cur_pose = robot.pose
+	cur_angle = cur_pose.rotation.angle_z.degrees
+	angle_to_turn = angle_z - cur_angle
+	print("Reached destination. Turning by: " + str(angle_to_turn))
+	my_turn_in_place(robot, angle_to_turn, 40)
+
 
 def my_go_to_pose2(robot, x, y, angle_z):
 	"""Moves the robot to a pose relative to its current pose.
@@ -184,94 +241,15 @@ def my_go_to_pose2(robot, x, y, angle_z):
 	# robot to reduce distance between current and desired pose (Approach 2).
 	# ####
 
-
+	# 1. Convert the local point of the target to global
 	target_local_pose = cozmo.util.pose_z_angle(x, y, 0, degrees(angle_z))
 	robot_pose = robot.pose
 	target_pose = get_global_pose_from_local(robot_pose, target_local_pose)
 	target_pose_x = target_pose.position.x
 	target_pose_y = target_pose.position.y
-
-	b = get_distance_between_wheels()
-	r = get_front_wheel_radius()
-	iteration_duration = 0.5
-	epsilon = 10
-	distance = 100
-
-	while distance > epsilon:
-
-		robot_pose = robot.pose
-		robot_pose_x = robot_pose.position.x
-		robot_pose_y = robot_pose.position.y
-		robot_angle = robot_pose.rotation.angle_z.radians
-
-		distance = math.sqrt((target_pose_x - robot_pose_x)**2 + (target_pose_y - robot_pose_y)**2)
-		direction_deviation_angle = math.atan((robot_pose_y - target_pose_y)/(robot_pose_x - target_pose_x))
-		if robot_pose_x > target_pose_x:
-			if robot_pose_y > target_pose_y:
-				direction_deviation_angle -= math.pi
-			else:
-				direction_deviation_angle += math.pi
-
-		angle_to_target = robot_angle - direction_deviation_angle
-
-		direct_velocity = 40
-		if distance < 50:
-			direct_velocity = 20
-
-		print("Target X: " + str(target_pose_x))
-		print("Target Y: " + str(target_pose_y))
-		print("Robot X: " + str(robot_pose_x))
-		print("Robot Y: " + str(robot_pose_y))
-		print("Distance: " + str(distance))
-		print("Robot angle: " + str(robot_angle))
-		print("Direction deviation angle: " + str(direction_deviation_angle))
-		print("Angle to target: " + str(angle_to_target))
-
-		# sl = (2*direct_velocity - angle_to_target*b)/(2*r)
-		# sr = (2*direct_velocity + angle_to_target*b)/(2*r)
-		sl = direct_velocity - angle_to_target*b
-		sr = direct_velocity + angle_to_target*b
-		print("Velocity:")
-		print(sl)
-		print(sr)
-		print("==============")
-		robot.drive_wheels(sr, sl)
-
-
-	# # Lengths of arcs for each wheel to reach (x,y)
-	# # These are arcs of the circle with the center at (0,y)
-	# if y > 0:
-	# 	l1 = math.pi*(y-b/2) / 2
-	# 	l2 = math.pi*(y+b/2) / 2
-	# else:
-	# 	y = abs(y)
-	# 	l1 = math.pi * (y + b/2) / 2
-	# 	l2 = math.pi * (y - b/2) / 2
-    #
-	# print("Length left: " + str(l1))
-	# print("Length right: " + str(l2))
-    #
-	# # Speeds for each wheel
-	# s1 = l1 / duration
-	# s2 = l2 / duration
-    #
-	# if s1 > s2 :
-	# 	s1 += 10 # some constant that takes warm up time into account. It was found experimentally
-	# else:
-	# 	s2 += 10
-    #
-	# print("Speed left: " + str(s1))
-	# print("Speed right: " + str(s2))
-    #
-	# robot.drive_wheels(s1, s2, duration = duration)
-	# time.sleep(0.1)
-    #
-	# After the location is reached, read the pose and turn in place towards needed angle
-	cur_pose = robot.pose
-	cur_angle = cur_pose.rotation.angle_z.degrees
-	angle_to_turn =  angle_z - cur_angle
-	print("Reached destination. Turning by: "  + str(angle_to_turn))
-	my_turn_in_place(robot, angle_to_turn, 40)
+	target_angle = target_pose.rotation.angle_z.degrees
+	# 2. Go to the target using inverse kinematics with feedback control
+	my_go_to_pose2_global(robot, target_pose_x, target_pose_y, target_angle)
 
 def my_go_to_pose3(robot, x, y, angle_z):
 	"""Moves the robot to a pose relative to its current pose.
@@ -286,6 +264,34 @@ def my_go_to_pose3(robot, x, y, angle_z):
 	# (cozmo_go_to_pose() above) to understand its strategy and do the same.
 	# ####
 
+	# 1. Convert the local point of the target to global
+	target_local_pose = cozmo.util.pose_z_angle(x, y, 0, degrees(angle_z))
+	robot_pose = robot.pose
+	target_pose = get_global_pose_from_local(robot_pose, target_local_pose)
+	target_pose_x = target_pose.position.x
+	target_pose_y = target_pose.position.y
+	target_angle = target_pose.rotation.angle_z.degrees
+
+	robot_pose = robot.pose
+	robot_pose_x = robot_pose.position.x
+	robot_pose_y = robot_pose.position.y
+	robot_angle = robot_pose.rotation.angle_z.radians
+
+	# 2. Estimate the angle between robot and target if it is > Pi, turn in place by this angle to get to the target faster.
+	# Note that here as in Approach #1 we assume that robot's initial angle is 0
+	direction_deviation_angle = math.atan((robot_pose_y - target_pose_y) / (robot_pose_x - target_pose_x))
+	if robot_pose_x > target_pose_x:
+		if robot_pose_y > target_pose_y:
+			direction_deviation_angle -= math.pi
+		else:
+			direction_deviation_angle += math.pi
+
+		print("Turning in place by: " + str(direction_deviation_angle))
+		my_turn_in_place(robot, math.degrees(direction_deviation_angle), 40)
+		time.sleep(0.1)
+
+	# 3. Once the target is no longer behind the robot, use Aproach #2 to reach the target and turn to the target angle
+	my_go_to_pose2_global(robot, target_pose_x, target_pose_y, target_angle)
 
 def run(robot: cozmo.robot.Robot):
 
@@ -310,7 +316,7 @@ def run(robot: cozmo.robot.Robot):
 	#my_turn_in_place(robot, 45, 40)
     #
 	#my_go_to_pose1(robot, 100, 100, 180)
-	my_go_to_pose2(robot, -200, -200, 180)
+	my_go_to_pose3(robot, -200, 200, 180)
 	#my_go_to_pose2(robot, 300, 300, 45)
 	# my_go_to_pose3(robot, 100, 100, 45)
 
