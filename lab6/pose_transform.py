@@ -45,6 +45,32 @@ def get_relative_pose(object_pose, reference_frame_pose):
 
 	return new_obj_pose
 
+def get_global_pose_from_local(ref_pose, local_pose):
+	local_x = local_pose.position.x
+	local_y = local_pose.position.y
+	local_z = local_pose.position.z
+	local_angle = local_pose.rotation.angle_z.radians
+
+	ref_x = ref_pose.position.x
+	ref_y = ref_pose.position.y
+	ref_angle = ref_pose.rotation.angle_z.radians
+
+	# 1. Perform rotation of transposed object coordinates on angle of reference coordinate system.
+	local_x_r = math.cos(ref_angle) * local_x - math.sin(ref_angle) * local_y
+	local_y_r = math.sin(ref_angle) * local_x + math.cos(ref_angle) * local_y
+
+	# 2. translate to convert the object coordinates to reference coordinates without rotation
+	local_x_n = local_x_r + ref_x
+	local_y_n = local_y_r + ref_y
+
+	# 3. Update angle of the object by just subtracting the angle of reference coordinate system
+	local_angle_n = local_angle + ref_angle
+
+	# 4. Create pose object
+	new_obj_pose = cozmo.util.pose_z_angle(local_x_n, local_y_n, local_z, radians(local_angle_n))
+
+	return new_obj_pose
+
 def find_relative_cube_pose(robot: cozmo.robot.Robot):
 	'''Looks for a cube while sitting still, prints the pose of the detected cube
 	in world coordinate frame and relative to the robot coordinate frame.'''
