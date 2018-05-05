@@ -23,7 +23,7 @@ def move_particle(particle, odom):
     new_particle = Particle(new_x, new_y, new_h)
     return new_particle
 
-def eucledian_disatnce(m1, m2):
+def eucledian_distance(m1, m2):
     x1 = m1[0]
     y1 = m1[1]
     x2 = m2[0]
@@ -31,11 +31,15 @@ def eucledian_disatnce(m1, m2):
     dist = grid_distance(x1, y1, x2, y2)
     return dist
 
+# Converts the distance between sensor marker position and particle marker position to the weight
+# Uses the function that is 1 when distance is 0 and decays to 0 as distance growth.
 def distance_to_probability(distance):
     alpha = 3.0
     prob = -2.0/(1.0+alpha**(-distance)) + 2.0
     return prob
 
+# Converts the heading difference between sensor marker position and particle marker position to the weight
+# Uses linear function that is 1 at 0 and 0 at 45, the values that are higher than 45 get weight as 0
 # Assuming that heading is in degrees in [0, 180]
 def heading_to_probability(heading):
     if heading <0 or heading > 180:
@@ -97,10 +101,7 @@ def measurement_update(particles, measured_marker_list, grid):
 
     """
 
-    #print("Got markers: " + str(measured_marker_list))
-
     # calculate weights
-
     heading_impact = 0.3
 
     weights = []
@@ -127,7 +128,7 @@ def measurement_update(particles, measured_marker_list, grid):
                 # For each particle marker reading, find closest reading from the sensors
                 for m_i in range(len(measured_marker_list)):
                     marker = measured_marker_list[m_i]
-                    distance = eucledian_disatnce(marker, particle_marker)
+                    distance = eucledian_distance(marker, particle_marker)
                     if distance < shortest_distance:
                         shortest_distance = distance
                         best_marker = marker
