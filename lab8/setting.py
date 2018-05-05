@@ -1,4 +1,5 @@
 
+#PARTICLE_COUNT = 5000       # Total number of particles in your filter
 PARTICLE_COUNT = 5000       # Total number of particles in your filter
 
 # odometry Gaussian noise model

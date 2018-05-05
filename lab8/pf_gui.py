@@ -25,15 +25,20 @@ Use_GUI = True
 # 1. Robot move forward, if hit an obstacle, robot bounces to a random direction
 # 2. Robot move as a circle (This is the motion autograder uses)
 # This is the flag to enable circle motion or not
-Move_circular = False
+Move_circular = True
 
 # robot moving speed (grid per move)
+# Robot_speed = 0.5
+# # initial robot transformation (X, Y, yaw in deg)
+# Robot_init_pose = (6, 3, 0)
+# # Angle (in degree) to turn per run in circle motion mode
+# Dh_circular = 10
+
 Robot_speed = 0.5
 # initial robot transformation (X, Y, yaw in deg)
-Robot_init_pose = (6, 3, 0)
+Robot_init_pose = (9, 9, 180)
 # Angle (in degree) to turn per run in circle motion mode
-Dh_circular = 10
-
+Dh_circular = 15
 
 
 # Forward motion mode: move robot just forward
