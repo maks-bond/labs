@@ -9,7 +9,26 @@ from queue import PriorityQueue
 import math
 import cozmo
 
+class Node:
+    def __init__(self, coord, parent, distance):
+        self.coord = coord
+        self.parent = parent
+        self.distance = distance
 
+    def __lt__(self, other):
+        return self.coord < other.coord
+
+    def __eq__(self, other):
+        return self.coord == other.coord
+
+    def __str__(self):
+        return str((self.coord, self.distance, self.parent))
+
+def print_queue(q):
+    for i in range(len(q.queue)):
+        print(q.queue[i])
+
+    print("=========")
 
 def astar(grid, heuristic):
     """Perform the A* search algorithm on a defined grid
@@ -18,7 +37,39 @@ def astar(grid, heuristic):
         grid -- CozGrid instance to perform search on
         heuristic -- supplied heuristic function
     """
-        
+
+    q = PriorityQueue()
+    start = grid.getStart()
+    q.put((0, Node(start, None, 0)))
+    goal = grid.getGoals()[0]
+    while not q.empty():
+        item = q.get()[1]
+        coord = item.coord
+        distance = item.distance
+
+        if coord == goal:
+            print("reached finish")
+            path = []
+            cur = item
+            while cur is not None:
+                path.insert(0, cur.coord)
+                cur = cur.parent
+                #print(cur)
+
+            grid.setPath(path)
+            print(path)
+            return
+
+        grid.addVisited(coord)
+        neighbors = grid.getNeighbors(coord)
+        for neighbor in neighbors:
+            neighbor_coord = neighbor[0]
+            neighbor_dist = neighbor[1]
+            if neighbor_coord not in grid.getVisited():
+
+                value = distance+1.1*heuristic(neighbor_coord, goal)
+                q.put((value, Node(neighbor_coord, item, distance+neighbor_dist)))
+
     pass # Your code here
 
 
@@ -30,7 +81,7 @@ def heuristic(current, goal):
         goal -- desired goal cell
     """
         
-    return 1 # Your code here
+    return math.sqrt(math.pow(current[0]-goal[0],2) + math.pow(current[1]-goal[1],2)) # Your code here
 
 
 def cozmoBehavior(robot: cozmo.robot.Robot):
