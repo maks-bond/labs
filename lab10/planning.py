@@ -49,7 +49,7 @@ def astar(grid, heuristic):
         item = q.get()[1]
         coord = item.coord
         distance = item.distance
-
+        # Check if goal is reached
         if coord == goal:
             path = []
             cur = item
@@ -61,19 +61,21 @@ def astar(grid, heuristic):
             grid.setPath(path)
             return
 
+        # Mark current cell as visited and expand
         grid.addVisited(coord)
         neighbors = grid.getNeighbors(coord)
         for neighbor in neighbors:
             neighbor_coord = neighbor[0]
             neighbor_dist = neighbor[1]
             if neighbor_coord not in grid.getVisited():
-
+                # A* function: current distance + 1.1*heuristic value
                 value = distance+1.1*heuristic(neighbor_coord, goal)
                 q.put((value, Node(neighbor_coord, item, distance+neighbor_dist)))
 
     pass # Your code here
 
 
+# Just eucledian distance to the target
 def heuristic(current, goal):
     """Heuristic function for A* algorithm
 
@@ -85,19 +87,11 @@ def heuristic(current, goal):
     return math.sqrt(math.pow(current[0]-goal[0],2) + math.pow(current[1]-goal[1],2)) # Your code here
 
 
-# We are assuming that robot's start position is at global (0, 0) pose
 def get_cube_pose_in_grid(cube_pose, grid):
 
     grid_x = round(cube_pose.position.x/grid.scale)
     grid_y = round(cube_pose.position.y/grid.scale)
     return (grid_x, grid_y)
-
-def updateObstacles(grid, cube2_grid, cube3_grid):
-    grid.clearObstacles()
-    if cube2_grid is not None:
-        grid.addObstacle(cube2_grid)
-    if cube3_grid is not None:
-        grid.addObstacle(cube3_grid)
 
 def getCenterPose(grid):
     grid_center_x = grid.width/2.0
@@ -112,6 +106,7 @@ def get_robot_grid_coord(robot):
     print("Getting robot grid coordinates: " + str(robot.pose) + " grid coord: " + str((grid_x, grid_y)))
     return (grid_x, grid_y)
 
+# Perform one step in A* path
 def move_to_grid_coord(robot, coord, next_coord, rotation_angle = None):
     global_x = coord[0]*grid.scale
     global_y = coord[1] * grid.scale
@@ -126,6 +121,7 @@ def move_to_grid_coord(robot, coord, next_coord, rotation_angle = None):
     pose = cozmo.util.pose_z_angle(global_x, global_y, 0, cozmo.util.radians(angle))
     robot.go_to_pose(pose, relative_to_robot=False).wait_for_completed()
 
+# Check if grid coordinates are significantly different
 def grid_coord_is_different(coord1, coord2):
     if coord1 == None and coord2 == None:
         return False
@@ -136,6 +132,7 @@ def grid_coord_is_different(coord1, coord2):
     distance = math.sqrt(math.pow(coord1[0]-coord2[0],2) + math.pow(coord1[1]-coord2[1],2))
     return distance >= 1.5
 
+# Reset A* state
 def reset_astar(grid, goal, start, goal_cube, obstacle_cube1, obstacle_cube2):
     grid.clearGoals()
     grid.clearVisited()
@@ -155,6 +152,7 @@ def reset_astar(grid, goal, start, goal_cube, obstacle_cube1, obstacle_cube2):
     if obstacle_cube2 != None:
         add_obstacles_around_cube(grid, obstacle_cube2)
 
+# Calculate target goal taking into account needed 10 cm distance from the cube and cube's orientation
 def get_target_goal(cube_pose):
     x = cube_pose.position.x
     y = cube_pose.position.y
@@ -241,7 +239,8 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
         except asyncio.TimeoutError:
             pass
 
-
+        # The logic to reach the center of the grid and rotate
+        # Run A* and build the path and reset the state
         if looking_for_target and (current_path is None or need_to_reset_astar):
             print("Running A* to reach center of a grid")
             center_pose = getCenterPose(grid)
@@ -251,6 +250,7 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
             current_path_index = 0
             need_to_reset_astar = False
 
+        # Perform next step following A* path
         if looking_for_target and (not reached_center):
             current_coord = current_path[current_path_index]
             next_coord = current_path[current_path_index+1] if current_path_index+1 < len(current_path) else None
@@ -260,12 +260,15 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
             if current_path_index >= len(current_path):
                 reached_center = True
 
+        # Once the center is reached rotate to be able to discover target cube
         if looking_for_target and reached_center:
             # Rotate around
             print("Reached center, rotating 30 degrees")
             robot.turn_in_place(cozmo.util.degrees(30), speed=cozmo.util.degrees(30)).wait_for_completed()
             time.sleep(1)
 
+        # The logic to reach target position
+        # Running A* and resetting the state
         if (not looking_for_target) and not done and (current_path is None or need_to_reset_astar):
             print("Running A* to reach target")
             reset_astar(grid, goal_grid, get_robot_grid_coord(robot), cube1_grid, cube2_grid, cube3_grid)
@@ -275,6 +278,7 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
             current_path_index = 0
             need_to_reset_astar = False
 
+        # Perform next step following A* path
         if (not looking_for_target) and not done and (current_path is not None):
             current_coord = current_path[current_path_index]
             next_coord = current_path[current_path_index + 1] if current_path_index + 1 < len(current_path) else None
@@ -284,9 +288,13 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
             if current_path_index >= len(current_path):
                 done = True
 
+        # Finished. Running animation to celebrate
         if done:
             robot.play_anim(name="anim_poked_giggle").wait_for_completed()
 
+
+        # Cube observation logic
+        # Every time new cube is observed or its position has significantly changed, we update cube's grid coordinates and set the flag to rerun A*
         if observed_cube is not None:
             observed_cube_id = observed_cube.cube_id
             if observed_cube_id == 1:
@@ -296,11 +304,11 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
                 looking_for_target = False
 
                 if grid_coord_is_different(new_cube1_grid, cube1_grid):
-                    # TODO: rerun A* if the goal has changed
                     cube1_grid = new_cube1_grid
                     goal_grid = get_target_goal(cube1.pose)
                     final_angle = get_final_angle(cube1.pose)
                     current_path = None
+                    need_to_reset_astar = True
                     add_obstacles_around_cube(grid, cube1_grid)
                     print("Cube 1, with pose in grid: %s" % str(cube1_grid))
                     print("Target with pose in grid: %s" % str(goal_grid))
@@ -310,8 +318,6 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
                 new_cube2_grid = get_cube_pose_in_grid(observed_cube.pose, grid)
                 if grid_coord_is_different(new_cube2_grid, cube2_grid):
                     cube2_grid = new_cube2_grid
-                    updateObstacles(grid, cube2_grid, cube3_grid)
-                    # TODO: Remove old obstacles if cube is moved
                     need_to_reset_astar = True
                     add_obstacles_around_cube(grid, cube2_grid)
                     print("Cube 2, with pose: %s" % str(cube2_grid))
@@ -320,8 +326,6 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
                 new_cube3_grid = get_cube_pose_in_grid(observed_cube.pose, grid)
                 if grid_coord_is_different(new_cube3_grid, cube3_grid):
                     cube3_grid = new_cube3_grid
-                    updateObstacles(grid, cube2_grid, cube3_grid)
-                    # TODO: Remove old obstacles if cube is moved
                     need_to_reset_astar = True
                     add_obstacles_around_cube(grid, cube3_grid)
                     print("Cube 3, with pose: %s" % str(cube3_grid))
