@@ -8,11 +8,12 @@ import numpy as np
 import re
 from sklearn import svm, metrics
 from skimage import io, feature, filters, exposure, color
+import matplotlib.pyplot as plt
 
 class ImageClassifier:
     
     def __init__(self):
-        self.classifer = None
+        self.classifier = None
 
     def imread_convert(self, f):
         return io.imread(f).astype(np.uint8)
@@ -42,6 +43,11 @@ class ImageClassifier:
         ########################
         
         # Please do not modify the return type below
+        feature_data = []
+        for im in data:
+            gray_im = color.rgb2gray(im)
+            (hog_features, hog_im) = feature.hog(gray_im, orientations=9, pixels_per_cell = (40, 40), block_norm="L1", visualise=True, feature_vector=True)
+            feature_data.append(hog_features)
         return(feature_data)
 
     def train_classifier(self, train_data, train_labels):
@@ -52,6 +58,8 @@ class ImageClassifier:
         ########################
         ######## YOUR CODE HERE
         ########################
+        self.classifier = svm.LinearSVC()
+        self.classifier.fit(train_data, train_labels)
 
     def predict_labels(self, data):
         # Please do not modify the header
@@ -64,6 +72,7 @@ class ImageClassifier:
         ########################
         
         # Please do not modify the return type below
+        predicted_labels = self.classifier.predict(data)
         return predicted_labels
 
       
