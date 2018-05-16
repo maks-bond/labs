@@ -9,6 +9,7 @@ import re
 from sklearn import svm, metrics
 from skimage import io, feature, filters, exposure, color
 import matplotlib.pyplot as plt
+import time
 
 class ImageClassifier:
     
@@ -44,9 +45,16 @@ class ImageClassifier:
         
         # Please do not modify the return type below
         feature_data = []
+        pixels_per_cell = (20, 20)
+        cells_per_block = (2, 2)
+        norm = "L1"
         for im in data:
             gray_im = color.rgb2gray(im)
-            (hog_features, hog_im) = feature.hog(gray_im, orientations=9, pixels_per_cell = (40, 40), block_norm="L1", visualise=True, feature_vector=True)
+            gray_blurred = filters.gaussian(gray_im, sigma = 3)
+            #gray_adjusted_im = exposure.adjust_sigmoid(gray_blurred, gain=50)
+            #io.imshow(gray_im)
+            #io.show()
+            (hog_features, hog_im) = feature.hog(gray_blurred, orientations=9, pixels_per_cell = pixels_per_cell, cells_per_block = cells_per_block, block_norm="L1", visualise=True, feature_vector=True)
             feature_data.append(hog_features)
         return(feature_data)
 
@@ -83,7 +91,7 @@ def main():
     # load images
     (train_raw, train_labels) = img_clf.load_data_from_folder('./train/')
     (test_raw, test_labels) = img_clf.load_data_from_folder('./test/')
-    
+
     # convert images into features
     train_data = img_clf.extract_image_features(train_raw)
     test_data = img_clf.extract_image_features(test_raw)
@@ -99,7 +107,7 @@ def main():
     
     # test model
     predicted_labels = img_clf.predict_labels(test_data)
-    print("\nTraining results")
+    print("\nTest results")
     print("=============================")
     print("Confusion Matrix:\n",metrics.confusion_matrix(test_labels, predicted_labels))
     print("Accuracy: ", metrics.accuracy_score(test_labels, predicted_labels))
