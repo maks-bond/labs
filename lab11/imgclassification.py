@@ -8,6 +8,7 @@ import numpy as np
 import re
 from sklearn import svm, metrics
 from skimage import io, feature, filters, exposure, color
+from skimage.morphology import disk
 import matplotlib.pyplot as plt
 import time
 
@@ -47,14 +48,41 @@ class ImageClassifier:
         feature_data = []
         pixels_per_cell = (20, 20)
         cells_per_block = (2, 2)
-        norm = "L1"
+        # TODO: Downsize images?
+        norm = "L1-sqrt"
+        orientations = 4
+        i = 0
         for im in data:
             gray_im = color.rgb2gray(im)
-            gray_blurred = filters.gaussian(gray_im, sigma = 3)
-            #gray_adjusted_im = exposure.adjust_sigmoid(gray_blurred, gain=50)
-            #io.imshow(gray_im)
-            #io.show()
-            (hog_features, hog_im) = feature.hog(gray_blurred, orientations=9, pixels_per_cell = pixels_per_cell, cells_per_block = cells_per_block, block_norm="L1", visualise=True, feature_vector=True)
+            gray_blurred = filters.gaussian(gray_im, sigma=1)
+            # thresh = filters.threshold_otsu(gray_blurred)
+            # binary_im = gray_blurred > thresh
+            # binary_blurred = filters.gaussian(binary_im, sigma=1)
+
+            # thresh = filters.threshold_li(gray_blurred)
+            # binary_im = gray_blurred > thresh
+
+            #fig, ax = filters.try_all_threshold(gray_blurred, figsize=(10, 8), verbose=False)
+            #plt.show()
+
+            # io.imshow(binary_im)
+            # io.show()
+            # break
+            #gray_adjusted_im = exposure.adjust_gamma(gray_blurred, gamma=0.5, gain=1)
+            #local_otsu = filters.rank.otsu(gray_adjusted_im, disk(5))
+            thresh = filters.threshold_otsu(gray_blurred)
+            binary_im = gray_blurred >= thresh *0.75
+            # if i == 34:
+            #     binary_im = gray_blurred >= thresh * 0.6
+            # fig, ax = filters.try_all_threshold(gray_adjusted_im, figsize=(10, 8), verbose=False)
+            # plt.show()
+            # if i == 34:
+            #     io.imshow(binary_im)
+            #     io.show()
+            i+=1
+            (hog_features, hog_im) = feature.hog(binary_im, orientations=orientations, pixels_per_cell = pixels_per_cell, cells_per_block = cells_per_block,
+                                                 block_norm=norm, visualise=True, feature_vector=True,
+                                                 transform_sqrt=True)
             feature_data.append(hog_features)
         return(feature_data)
 
@@ -83,7 +111,8 @@ class ImageClassifier:
         predicted_labels = self.classifier.predict(data)
         return predicted_labels
 
-      
+# TODO: Do nearest neighbors
+# TODO: threshold_otsu
 def main():
 
     img_clf = ImageClassifier()
@@ -112,6 +141,15 @@ def main():
     print("Confusion Matrix:\n",metrics.confusion_matrix(test_labels, predicted_labels))
     print("Accuracy: ", metrics.accuracy_score(test_labels, predicted_labels))
     print("F1 score: ", metrics.f1_score(test_labels, predicted_labels, average='micro'))
+
+    # Get those images which didn't match
+    print("Not matched labels")
+    print("Indexes:")
+    print(np.where(test_labels != predicted_labels))
+    print("Test Labels:")
+    print(test_labels[np.where(test_labels != predicted_labels)])
+    print("Predicted Labels:")
+    print(predicted_labels[np.where(test_labels != predicted_labels)])
 
 
 if __name__ == "__main__":
