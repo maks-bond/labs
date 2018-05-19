@@ -51,37 +51,18 @@ class ImageClassifier:
         # TODO: Downsize images?
         norm = "L1-sqrt"
         orientations = 4
-        i = 0
         for im in data:
+            # Convert to gray
             gray_im = color.rgb2gray(im)
+            # Blur a bit to reduce noise
             gray_blurred = filters.gaussian(gray_im, sigma=1)
-            # thresh = filters.threshold_otsu(gray_blurred)
-            # binary_im = gray_blurred > thresh
-            # binary_blurred = filters.gaussian(binary_im, sigma=1)
-
-            # thresh = filters.threshold_li(gray_blurred)
-            # binary_im = gray_blurred > thresh
-
-            #fig, ax = filters.try_all_threshold(gray_blurred, figsize=(10, 8), verbose=False)
-            #plt.show()
-
-            # io.imshow(binary_im)
-            # io.show()
-            # break
-            #gray_adjusted_im = exposure.adjust_gamma(gray_blurred, gamma=0.5, gain=1)
-            #local_otsu = filters.rank.otsu(gray_adjusted_im, disk(5))
+            # Apply otsu threshold
             thresh = filters.threshold_otsu(gray_blurred)
+            # Filter using fraction of a threshold to get binary image
             binary_im = gray_blurred >= thresh *0.75
-            # if i == 34:
-            #     binary_im = gray_blurred >= thresh * 0.6
-            # fig, ax = filters.try_all_threshold(gray_adjusted_im, figsize=(10, 8), verbose=False)
-            # plt.show()
-            # if i == 34:
-            #     io.imshow(binary_im)
-            #     io.show()
-            i+=1
-            (hog_features, hog_im) = feature.hog(binary_im, orientations=orientations, pixels_per_cell = pixels_per_cell, cells_per_block = cells_per_block,
-                                                 block_norm=norm, visualise=True, feature_vector=True,
+            # Get hog features
+            hog_features = feature.hog(binary_im, orientations=orientations, pixels_per_cell = pixels_per_cell, cells_per_block = cells_per_block,
+                                                 block_norm=norm, visualise=False, feature_vector=True,
                                                  transform_sqrt=True)
             feature_data.append(hog_features)
         return(feature_data)
@@ -94,6 +75,8 @@ class ImageClassifier:
         ########################
         ######## YOUR CODE HERE
         ########################
+
+        # Fit linear SVM classifier
         self.classifier = svm.LinearSVC()
         self.classifier.fit(train_data, train_labels)
 
@@ -108,11 +91,11 @@ class ImageClassifier:
         ########################
         
         # Please do not modify the return type below
+
+        # Predict using trained linear svm
         predicted_labels = self.classifier.predict(data)
         return predicted_labels
 
-# TODO: Do nearest neighbors
-# TODO: threshold_otsu
 def main():
 
     img_clf = ImageClassifier()
@@ -143,13 +126,13 @@ def main():
     print("F1 score: ", metrics.f1_score(test_labels, predicted_labels, average='micro'))
 
     # Get those images which didn't match
-    print("Not matched labels")
-    print("Indexes:")
-    print(np.where(test_labels != predicted_labels))
-    print("Test Labels:")
-    print(test_labels[np.where(test_labels != predicted_labels)])
-    print("Predicted Labels:")
-    print(predicted_labels[np.where(test_labels != predicted_labels)])
+    # print("Not matched labels:")
+    # print("Indexes:")
+    # print(np.where(test_labels != predicted_labels))
+    # print("Test Labels:")
+    # print(test_labels[np.where(test_labels != predicted_labels)])
+    # print("Predicted Labels:")
+    # print(predicted_labels[np.where(test_labels != predicted_labels)])
 
 
 if __name__ == "__main__":
