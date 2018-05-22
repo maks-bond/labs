@@ -132,7 +132,7 @@ class ValueIterationTest(testClasses.TestCase):
             policy[state] = agent.computeActionFromValues(state)
             possibleActions = self.grid.getPossibleActions(state)
             for action in actions:
-                if not qValues.has_key(action):
+                if not (action in qValues):
                     qValues[action] = {}
                 if action in possibleActions:
                     qValues[action][state] = agent.computeQValueFromValues(state, action)
@@ -297,7 +297,7 @@ class ApproximateQLearningTest(testClasses.TestCase):
         for state in states:
             possibleActions = self.grid.getPossibleActions(state)
             for action in actions:
-                if not qValues.has_key(action):
+                if not (action in qValues):
                     qValues[action] = {}
                 if action in possibleActions:
                     qValues[action][state] = agent.getQValue(state, action)
@@ -475,7 +475,7 @@ class QLearningTest(testClasses.TestCase):
             policy[state] = agent.computeActionFromQValues(state)
             possibleActions = self.grid.getPossibleActions(state)
             for action in actions:
-                if not qValues.has_key(action):
+                if not (action in qValues):
                     qValues[action] = {}
                 if action in possibleActions:
                     qValues[action][state] = agent.getQValue(state, action)

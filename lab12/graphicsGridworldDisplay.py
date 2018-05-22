@@ -13,6 +13,7 @@
 
 
 import util
+from functools import reduce
 from graphicsUtils import *
 
 class GraphicsGridworldDisplay:
