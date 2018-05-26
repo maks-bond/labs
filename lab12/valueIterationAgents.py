@@ -46,44 +46,34 @@ class ValueIterationAgent(ValueEstimationAgent):
         # Write value iteration code here
         "*** YOUR CODE HERE ***"
 
-        #print(iterations)
         cur_discount = discount
         new_values = util.Counter()
         for it in range(iterations+1):
+			# Update values
             self.values = new_values
             new_values = util.Counter()
+			# Iterate over all states
             for state in mdp.getStates():
                 best_q_value = -10000000
-                # TODO: handle terminal states
+				# Get actions
                 for action in mdp.getPossibleActions(state):
                     self.qvalues[(state, action)] = 0
+					# Iterate over potential states that this action leads to
                     for state_prob in mdp.getTransitionStatesAndProbs(state, action):
                         next_state = state_prob[0]
                         prob = state_prob[1]
-                        # print("Current state: " + str(state))
-                        # print("Action: " + str(action))
-                        # print("Next state: " + str(next_state))
-                        # print("Discount: " + str(cur_discount))
-                        # print("Reward: " + str(self.mdp.getReward(state, action, next_state)))
-                        # print("Prob: " + str(prob))
-                        # print("Value: " + str(self.values[next_state]))
-
+						
+						# Calculate a Q-value
                         self.qvalues[(state, action)] += prob*(mdp.getReward(state, action, next_state)+cur_discount*self.values[next_state])
-
-                        # print("Q-Value: " + str(self.qvalues[(state, action)]))
-                        # print("==========\n")
 
                     if self.qvalues[(state, action)] > best_q_value:
                         best_q_value = self.qvalues[(state, action)]
-
+				
+				# Populate values
                 if self.mdp.isTerminal(state) == False:
                     new_values[state] = best_q_value
                 else:
                     new_values[state] = 0
-            #self.values = new_values
-            #print(self.values)
-            #print("\n")
-            #cur_discount *= discount
 
     def getValue(self, state):
         """
@@ -98,7 +88,6 @@ class ValueIterationAgent(ValueEstimationAgent):
           value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
-        #print(self.qvalues[(state, action)])
         return self.qvalues[(state, action)]
 
     def computeActionFromValues(self, state):
@@ -111,6 +100,7 @@ class ValueIterationAgent(ValueEstimationAgent):
           terminal state, you should return None.
         """
         "*** YOUR CODE HERE ***"
+		# Use calculated Q-Values to get best action
         if self.mdp.isTerminal(state):
             return None
 
